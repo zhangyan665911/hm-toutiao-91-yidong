@@ -5,7 +5,7 @@ import store from './store'
 import Vant from 'vant'
 import 'vant/lib/index.css'
 import 'amfe-flexible' // 引入自动适配
-import '@/styles/index.less'
+import '@/styles/index.less' // 必须放在vant样式下面 要不覆盖不了
 Vue.use(Vant)// 一旦完成注冊 在任意地方都可以用
 
 Vue.config.productionTip = false
