@@ -1,5 +1,10 @@
 <template>
-  <div>视频</div>
+  <div>
+    <van-skeleton title avatar :row="3" />
+    <van-skeleton title avatar :row="3" />
+    <van-skeleton title avatar :row="3" />
+    <van-skeleton title avatar :row="3" />
+  </div>
 </template>
 
 <script>

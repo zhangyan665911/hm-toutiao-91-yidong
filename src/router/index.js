@@ -47,7 +47,7 @@ const routes = [
     component: Search
   },
   {
-    path: '/searchresult',
+    path: '/search/result',
     component: SearchResult
   }
   // {

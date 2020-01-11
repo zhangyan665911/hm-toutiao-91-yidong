@@ -1,5 +1,7 @@
 <template>
-  <div>个人</div>
+  <div class="container">
+    个人
+  </div>
 </template>
 
 <script>
