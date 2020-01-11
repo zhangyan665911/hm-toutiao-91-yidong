@@ -2,6 +2,9 @@ import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
 import store from './store'
+import Vant from 'vant'
+import 'vant/lib/index.css'
+Vue.use(Vant)// 一旦完成注冊 在任意地方都可以用
 
 Vue.config.productionTip = false
 
