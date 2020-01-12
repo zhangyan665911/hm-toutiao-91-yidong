@@ -3,6 +3,7 @@
 import axios from 'axios'
 import JSONBig from 'json-bigint'
 import store from '@/store'
+import router from '@/router'
 // 创建一个新的插件实例
 // 应该给request一个固定的请求地址 baseURL
 const instance = axios.create({
@@ -37,7 +38,45 @@ instance.interceptors.response.use(function (response) {
   } catch (error) {
     return response.data
   }
-}, function (error) {
+}, async function (error) {
+  // 处理token失效的问题
+  // 判断
+  // error  中的三个参数 config=> 当前请求的配置 request=>请求 response 响应
+  if (error.response && error.response.status === 401) {
+    let topath = { path: '/login', query: { redirectUrl: router.currentRoute.path } }
+    // 表示token 过期
+    // 判断是否有refresh_token
+    if (store.state.user.refresh_token) {
+      // 如果有他 发送请求换取一个新的token
+      // 这里不应该再用instance因为instance会有请求拦截
+      try {
+        let result = axios({
+          methods: 'put',
+          url: 'http://ttapi.research.itcast.cn/app/v1_0/authorizations',
+          headers: {
+            Authorization: `Bearer ${store.state.user.refresh_token}`
+          }
+        })
+        // 将以前的refresh 14天有效期
+        store.commit('updateUser', { user: { token: result.data.data.token, refresh_token: store.state.user.refresh_token } })
+        return instance(error.config)// 把刚才错误的 把这个Promise返回？？？？？
+      } catch (error) {
+        // 如果出错，表示补救措施也失效了，应该跳转登录页 并且把token清掉
+        store.commit('clearUser')// 把用户信息清空
+        router.push(topath)
+      }
+    } else {
+      // 没有refresh_token都没有 返回登录
+      // push不仅可以一个字符串还可以push一个对象
+      router.push(topath)
+      //   router.push('/login')
+      // 当访问页面时=>去登录 => 登录成功之后=> 回到之前的页面
+      // 记住当前的地址 => 登录页面=> 读取地址
+      // params 动态路由 user/:id
+      // query 传参user?id=123
+      // 获取当前的页面地址
+    }
+  }
   return Promise.reject(error)
 })
 export default instance
