@@ -15,6 +15,8 @@
 </template>
 
 <script>
+import { mapMutations } from 'vuex'
+import { login } from '@/api/user'
 export default {
   name: 'login',
   data () {
@@ -54,13 +56,22 @@ export default {
       this.errorMsg.code = ''
       return true
     },
-    login () {
+    async login () {
       if (this.checkMobile() && this.checkCode()) {
         // 发送请求
         // 提示消息 表示登录成功
-        console.log('校验通过')
+        // console.log('校验通过')
+        const data = await login(this.loginForm)// 获取结果
+        // console.log(data)
+        this.updateUser({ user: data })
+        this.$znotify({ type: 'success', message: '登录成功' })
+        // 跳转
+        // 两种情况
+        let { redirectUrl } = this.$route.query// 当前路由信息
+        this.$router.push(redirectUrl || '/')
       }
-    }
+    },
+    ...mapMutations(['updateUser'])
   }
 }
 </script>
