@@ -27,7 +27,7 @@
                     <div class="info_box">
                         <span>{{article.aut_name}}</span>
                         <span>{{article.comm_count}}评论</span>
-                        <span>{{article.pubdate}}</span>
+                        <span>{{article.pubdate | relTime}}</span>
                         <span class="close"><van-icon name="cross"></van-icon></span>
                     </div>
                 </div>
@@ -70,15 +70,14 @@ export default {
           let arr = Array.from(Array(10), (value, index) => this.articles.length + index + 1)
           this.articles.push(...arr)
           // 关闭状态
-          this.upLoading = false
+          this.upLoading = falsey
         } else {
           this.finished = true
         }
       }, 1000) */
       // 真实的数据请求
       // 第一次加载，时间戳是空的 所以传当前时间
-      console.log('1')
-      console.log({ timestamp: this.timestamp || Date.now(), channel_id: this.channel_id })
+
       const data = await getArticles({ timestamp: this.timestamp || Date.now(), channel_id: this.channel_id })
       this.articles.push(...data.results)// push只能push一个
       this.upLoading = false // 关闭状态
