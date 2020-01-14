@@ -62,6 +62,7 @@ export default {
   methods: {
     // van-list组件当你的组件内容距离底部超过一定长度的时候就会再调用onload
     async onLoad () {
+      await this.$sleep()// 等待sleep resolve
       /* setTimeout(() => {
         // 给数据设置一个上限，不能超过50条，如果
         if (this.articles.length < 50) {
@@ -90,6 +91,7 @@ export default {
       }
     },
     async onRefresh () {
+      await this.$sleep()// 等待sleep resolve
       // 下拉刷新
       /* console.log('下拉刷新')
       setTimeout(() => {
