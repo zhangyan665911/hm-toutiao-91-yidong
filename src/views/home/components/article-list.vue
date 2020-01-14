@@ -1,6 +1,7 @@
 /* eslint-disable space-before-blocks */
 <template>
   <div class="scroll-wrapper">
+      <van-pull-refresh v-model="downLoading" @refresh="onRefresh" :success-text="refreshSuccessText">
         <van-list
             v-model="upLoading"
             :finished="finished"
@@ -13,6 +14,7 @@
                 :title="article"
             />
         </van-list>
+      </van-pull-refresh>
     </div>
 </template>
 
@@ -21,9 +23,12 @@ export default {
   name: 'article-list',
   data () {
     return {
+      downLoading: false, // 是否开启下拉刷新状态
       upLoading: false, // 是否开启上拉加载
       finished: false, // 是否完成全部加载
-      articles: []// 定义一个数组来接收上拉加载的数据
+      articles: [], // 定义一个数组来接收上拉加载的数据
+      refreshSuccessText: '' //
+
     }
   },
   methods: {
@@ -40,6 +45,16 @@ export default {
         } else {
           this.finished = true
         }
+      }, 1000)
+    },
+    onRefresh () {
+      // 下拉刷新
+      console.log('下拉刷新')
+      setTimeout(() => {
+        let arr = Array.from(Array(10), (value, index) => '追加' + index + 1)
+        this.articles.unshift(...arr)
+        this.downLoading = false
+        this.refreshSuccessText = `更新了${arr.length}`
       }, 1000)
     }
   }
