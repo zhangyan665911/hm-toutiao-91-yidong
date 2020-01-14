@@ -4,16 +4,24 @@
       <van-tab :title="channel.name" v-for="channel in channels" :key="channel.id" >
         <!-- 这个div设置了滚动条 目的是给后面做阅读记忆留下伏笔 -->
         <!-- 阅读记忆=>看文章看到一半滑到一半回来还是原来看的位置 -->
-        <article-list :channel_id="channel.id"></article-list>
+        <!-- 如果要监听子组件的事件。就应该再子组件的标签上写监听 -->
+        <article-list :channel_id="channel.id" @showAction="openMoreAction"></article-list>
       </van-tab>
     </van-tabs>
     <span class="bar_btn">
       <van-icon name="wap-nav"></van-icon>
     </span>
+    <!-- 放置弹层 -->
+    <van-popup v-model="showMoreAction" :style=" {width:'80%'}">
+      <more-action @dislike="dislike"></more-action>
+    </van-popup>
   </div>
 </template>
 
 <script>
+import eventBus from '@/utils/eventBus'
+import { dislikeArticle } from '@/api/article'
+import MoreAction from './components/more-action'
 import { getMyChannels } from '@/api/channels'
 import ArticleList from './components/article-list'
 export default {
@@ -21,16 +29,37 @@ export default {
   data () {
     return {
       activeIndex: 0,
-      channels: [] // 接收频道数据
+      channels: [], // 接收频道数据
+      showMoreAction: false,
+      artId: null// 用来接收文章id
     }
   },
   components: {
-    ArticleList
+    ArticleList,
+    MoreAction
   },
   methods: {
     async getMyChannels () {
       let data = await getMyChannels()
       this.channels = data.channels
+    },
+    openMoreAction (artId) {
+      // 监听子组件触发的事件 打开弹层
+      this.showMoreAction = true
+      this.artId = artId // 接收不喜欢的id
+    },
+    async dislike () {
+      // 调用不喜欢接口
+
+      try {
+        await dislikeArticle({ target: this.artId })
+        this.$znotify({ type: 'success', message: '操作成功' })
+        // 触发一个事件 发出一个广播 听到广播的文章列表删除对应的数据
+        eventBus.$emit('delArticle', this.artId, this.channels[this.activeIndex].id)
+      } catch (error) {
+        this.$znotify({ type: 'danger', message: '操作失败' })
+      }
+      this.showMoreAction = false
     }
   },
   created () {

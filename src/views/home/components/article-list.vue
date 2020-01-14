@@ -28,7 +28,7 @@
                         <span>{{article.aut_name}}</span>
                         <span>{{article.comm_count}}评论</span>
                         <span>{{article.pubdate | relTime}}</span>
-                        <span class="close"><van-icon name="cross"></van-icon></span>
+                        <span class="close" v-if="user.token" @click="$emit('showAction',article.art_id.toString())"><van-icon name="cross"></van-icon></span>
                     </div>
                 </div>
             </van-cell>
@@ -39,6 +39,8 @@
 
 <script>
 import { getArticles } from '@/api/article'
+import { mapState } from 'vuex'
+import eventBus from '@/utils/eventBus'
 export default {
   name: 'article-list',
   data () {
@@ -51,6 +53,10 @@ export default {
       timestamp: null // 定义一个时间戳，发数据的时候用
     }
   },
+  computed: {
+    // 映射vuex中的store的state的user
+    ...mapState(['user'])
+  },
   // 对象形式接收
   props: {
     channel_id: {
@@ -58,6 +64,20 @@ export default {
       required: true, // 要求props必须传
       default: null // 给props一个默认值
     }
+  },
+  created () {
+    // 开启监听
+    eventBus.$on('delArticle', (artId, channelId) => {
+      if (this.channel_id === channelId) {
+        // 该列表就是激活的列表
+        // 查找对应的文章索引
+        let index = this.articles.findIndex(item => item.art_id.toString() === artId)
+        if (index > -1) {
+          // 找到了就要删除
+          this.articles.splice(index, 1)// 删除不喜欢的文章
+        }
+      }
+    })
   },
   methods: {
     // van-list组件当你的组件内容距离底部超过一定长度的时候就会再调用onload
