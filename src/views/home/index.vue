@@ -20,7 +20,7 @@
     <!-- 编辑频道 -->
     <van-action-sheet :round="false" v-model="showChannelEdit" title="编辑频道">
       <!-- 频道编辑组件 -->
-      <channel-edit  @delChannel="delChannel" :activeIndex="activeIndex" :channels="channels" @selectChannel="selectChannel"></channel-edit>
+      <channel-edit @addChannel="addChannel"  @delChannel="delChannel" :activeIndex="activeIndex" :channels="channels" @selectChannel="selectChannel"></channel-edit>
     </van-action-sheet>
   </div>
 </template>
@@ -30,7 +30,7 @@ import ChannelEdit from './components/channel-edit'
 import eventBus from '@/utils/eventBus'
 import { dislikeArticle, reportArticle } from '@/api/article'
 import MoreAction from './components/more-action'
-import { getMyChannels, delChannel } from '@/api/channels'
+import { getMyChannels, delChannel, addChannel } from '@/api/channels'
 import ArticleList from './components/article-list'
 export default {
   name: 'home',
@@ -132,6 +132,10 @@ export default {
       } catch (error) {
         this.$znotify({ type: 'danger', message: '操作失败' })
       }
+    },
+    async addChannel (channel) {
+      await addChannel(channel)
+      this.channels.push(channel)// 这一步是修改data中的数据
     }
 
   },

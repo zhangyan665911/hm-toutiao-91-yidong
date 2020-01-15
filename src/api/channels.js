@@ -67,6 +67,6 @@ export function addChannel (channel) {
     channels.push(channel) // 将频道添加到队尾
     // 重新写入缓存
     localStorage.setItem(key, JSON.stringify(channels))
-    resolve(channels)// 释放成功
+    resolve()// 释放成功
   })
 }
