@@ -8,19 +8,27 @@
         <article-list :channel_id="channel.id" @showAction="openMoreAction"></article-list>
       </van-tab>
     </van-tabs>
-    <span class="bar_btn">
+    <!-- 显示编辑频道的图标 -->
+    <span class="bar_btn" @click="showChannelEdit=true">
       <van-icon name="wap-nav"></van-icon>
     </span>
     <!-- 放置弹层 -->
     <van-popup v-model="showMoreAction" :style=" {width:'80%'}">
-      <more-action @dislike="dislike"></more-action>
+      <!-- report 事件中的第一个参数$event实际上就是moreAction 传出的参数 -->
+      <more-action @dislike="dislikeOrReport($event,'dislike')" @report="dislikeOrReport($event,'report')"></more-action>
     </van-popup>
+    <!-- 编辑频道 -->
+    <van-action-sheet :round="false" v-model="showChannelEdit" title="编辑频道">
+      <!-- 频道编辑组件 -->
+      <channel-edit></channel-edit>
+    </van-action-sheet>
   </div>
 </template>
 
 <script>
+import ChannelEdit from './components/channel-edit'
 import eventBus from '@/utils/eventBus'
-import { dislikeArticle } from '@/api/article'
+import { dislikeArticle, reportArticle } from '@/api/article'
 import MoreAction from './components/more-action'
 import { getMyChannels } from '@/api/channels'
 import ArticleList from './components/article-list'
@@ -31,12 +39,14 @@ export default {
       activeIndex: 0,
       channels: [], // 接收频道数据
       showMoreAction: false,
-      artId: null// 用来接收文章id
+      artId: null, // 用来接收文章id
+      showChannelEdit: false
     }
   },
   components: {
     ArticleList,
-    MoreAction
+    MoreAction,
+    ChannelEdit
   },
   methods: {
     async getMyChannels () {
@@ -48,18 +58,54 @@ export default {
       this.showMoreAction = true
       this.artId = artId // 接收不喜欢的id
     },
-    async dislike () {
-      // 调用不喜欢接口
+    // async dislike () {
+    //   // 调用不喜欢接口
 
+    //   try {
+    //     await dislikeArticle({ target: this.artId })
+    //     this.$znotify({ type: 'success', message: '操作成功' })
+    //     // 触发一个事件 发出一个广播 听到广播的文章列表删除对应的数据
+    //     eventBus.$emit('delArticle', this.artId, this.channels[this.activeIndex].id)
+    //   } catch (error) {
+    //     this.$znotify({ type: 'danger', message: '操作失败' })
+    //   }
+    //   this.showMoreAction = false
+    // },
+    // async report (type) {
+    //   try {
+    //     // 调用举报文章的接口
+    //     await reportArticle({ target: this.artId, type: type })
+    //     this.$znotify({
+    //       type: 'success',
+    //       message: '操作成功'
+    //     })
+    //     this.showMoreAction = false
+    //     // 触发一个事件 发出一个广播 听到广播的文章列表删除对应的数据
+    //     eventBus.$emit('delArticle', this.artId, this.channels[this.activeIndex].id)
+    //   } catch (error) {
+    //     this.$znotify({
+    //       type: 'danger',
+    //       message: '操作失败'
+    //     })
+    //   }
+    // },
+    async dislikeOrReport (params, operateType) {
       try {
-        await dislikeArticle({ target: this.artId })
-        this.$znotify({ type: 'success', message: '操作成功' })
+        // operateType 有可能是report 或者dislike
+        operateType === 'dislike' ? await dislikeArticle({ target: this.artId }) : await reportArticle({ target: this.artId, type: params })
+        this.$znotify({
+          type: 'success',
+          message: '操作成功'
+        })
+        this.showMoreAction = false
         // 触发一个事件 发出一个广播 听到广播的文章列表删除对应的数据
         eventBus.$emit('delArticle', this.artId, this.channels[this.activeIndex].id)
       } catch (error) {
-        this.$znotify({ type: 'danger', message: '操作失败' })
+        this.$znotify({
+          type: 'danger',
+          message: '操作失败'
+        })
       }
-      this.showMoreAction = false
     }
   },
   created () {
@@ -121,6 +167,17 @@ export default {
     z-index: 1000;
     &::before {
       font-size: 20px;
+    }
+  }
+}
+.van-action-sheet {
+  max-height: 100%;
+  height: 100%;
+  .van-action-sheet__header {
+    background: #3296fa;
+    color: #fff;
+    .van-icon-close {
+      color: #fff;
     }
   }
 }
