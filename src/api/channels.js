@@ -58,3 +58,15 @@ export function delChannel (id) {
     }
   })
 }
+// 添加频道
+export function addChannel (channel) {
+  return new Promise(function (resolve, reject) {
+    // 添加逻辑
+    let key = store.state.user.token ? CACHE_CHANNEL_U : CACHE_CHANNEL_T
+    let channels = JSON.parse(localStorage.getItem(key)) // 得到缓存结果
+    channels.push(channel) // 将频道添加到队尾
+    // 重新写入缓存
+    localStorage.setItem(key, JSON.stringify(channels))
+    resolve(channels)// 释放成功
+  })
+}
