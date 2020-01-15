@@ -20,7 +20,7 @@
     <!-- 编辑频道 -->
     <van-action-sheet :round="false" v-model="showChannelEdit" title="编辑频道">
       <!-- 频道编辑组件 -->
-      <channel-edit :channels="channels"></channel-edit>
+      <channel-edit :channels="channels" @selectChannel="selectChannel"></channel-edit>
     </van-action-sheet>
   </div>
 </template>
@@ -106,6 +106,12 @@ export default {
           message: '操作失败'
         })
       }
+    },
+    selectChannel (channelId) {
+      // 要选择切换到的对应的频道，关闭弹层
+      let index = this.channels.findIndex((item) => { return item.id === channelId }) // 获取切换频道的索引
+      this.activeIndex = index // 将tab激活标签切换到对应的标签下
+      this.showChannelEdit = false // 关闭弹层
     }
   },
   created () {

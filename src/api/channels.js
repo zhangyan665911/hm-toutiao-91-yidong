@@ -8,3 +8,9 @@ export function getMyChannels () {
     // 默认就是get不用写
   })
 }
+// 获取所有的频道
+export function getAllChannels () {
+  return request({
+    url: '/channels'
+  })
+}

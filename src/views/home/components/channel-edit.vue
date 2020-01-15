@@ -7,10 +7,11 @@
         <van-button v-if="!editing" @click="editing=true" size="mini" type="info" plain>编辑</van-button>
         <van-button v-else @click="editing=false" size="mini" type="danger" plain>完成</van-button>
       </div>
-      <!-- d频道： -->
+      <!-- 我的频道： -->
       <van-grid class="van-hairline--left">
         <van-grid-item v-for="(channel,i) in channels" :key="channel.id">
-          <span class="f12">{{channel.name}}</span>
+            <!-- 告诉父组件点击了哪个频道 -->
+          <span class="f12" @click="$emit('selectChannel',channel.id)">{{channel.name}}</span>
           <!-- 通过编辑状态来控制叉号图标的显示和隐藏 -->
           <!-- v-if的优先级比v-show的高 -->
           <template v-if="i!=0" >
@@ -19,11 +20,12 @@
         </van-grid-item>
       </van-grid>
     </div>
+    <!-- 可选频道 所有的频道减去自己的频道 -->
     <div class="channel">
       <div class="tit">可选频道：</div>
       <van-grid class="van-hairline--left">
-        <van-grid-item v-for="index in 8" :key="index">
-          <span class="f12">频道{{index}}</span>
+        <van-grid-item v-for="channel in optionalChannels" :key="channel.id">
+          <span class="f12">{{channel.name}}</span>
           <van-icon class="btn" name="plus"></van-icon>
         </van-grid-item>
       </van-grid>
@@ -32,10 +34,12 @@
 </template>
 
 <script>
+import { getAllChannels } from '@/api/channels'
 export default {
   data () {
     return {
-      editing: false
+      editing: false,
+      allChannels: []// 用来接收所有的频道
     }
   },
   props: {
@@ -43,6 +47,21 @@ export default {
       type: Array,
       required: true,
       default: () => []// eslint要求我们必须返回一个函数，用一个函数来声明数组类型，所以用箭头函数
+    }
+  },
+  computed: {
+    // 可选频道=全部频道-当前频道
+    optionalChannels () {
+      return this.allChannels.filter(item => !this.channels.some(o => o.id === item.id))
+    }
+  },
+  created () {
+    this.getAllChannels()
+  },
+  methods: {
+    async getAllChannels () {
+      const data = await getAllChannels()
+      this.allChannels = data.channels // 给所有频道赋值
     }
   }
 }
