@@ -20,7 +20,7 @@
     <!-- 编辑频道 -->
     <van-action-sheet :round="false" v-model="showChannelEdit" title="编辑频道">
       <!-- 频道编辑组件 -->
-      <channel-edit :activeIndex="activeIndex" :channels="channels" @selectChannel="selectChannel"></channel-edit>
+      <channel-edit  @delChannel="delChannel" :activeIndex="activeIndex" :channels="channels" @selectChannel="selectChannel"></channel-edit>
     </van-action-sheet>
   </div>
 </template>
@@ -30,7 +30,7 @@ import ChannelEdit from './components/channel-edit'
 import eventBus from '@/utils/eventBus'
 import { dislikeArticle, reportArticle } from '@/api/article'
 import MoreAction from './components/more-action'
-import { getMyChannels } from '@/api/channels'
+import { getMyChannels, delChannel } from '@/api/channels'
 import ArticleList from './components/article-list'
 export default {
   name: 'home',
@@ -112,7 +112,28 @@ export default {
       let index = this.channels.findIndex((item) => { return item.id === channelId }) // 获取切换频道的索引
       this.activeIndex = index // 将tab激活标签切换到对应的标签下
       this.showChannelEdit = false // 关闭弹层
+    },
+    // 删除频道
+    async  delChannel (id) {
+      try {
+        await delChannel(id)
+        // 删除成功后
+        // 移除data中的channels的id
+        let index = this.channels.findIndex(item => item.id === id)
+        if (index <= this.activeIndex) {
+          // 如果删除的频道在激活频道之前或者就是当前激活频道，要把我们的激活索引往前挪一位
+          this.activeIndex = this.activeIndex - 1
+        }
+        if (index > -1) {
+          // 找到了
+          this.channels.splice(index, 1)// 移除当前频道
+          // 判断一下删除的索引和激活的索引
+        }
+      } catch (error) {
+        this.$znotify({ type: 'danger', message: '操作失败' })
+      }
     }
+
   },
   created () {
     this.getMyChannels()

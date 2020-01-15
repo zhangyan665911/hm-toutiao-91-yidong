@@ -15,7 +15,7 @@
           <!-- 通过编辑状态来控制叉号图标的显示和隐藏 -->
           <!-- v-if的优先级比v-show的高 -->
           <template v-if="i!=0" >
-              <van-icon v-show="editing" class="btn" name="cross"></van-icon>
+              <van-icon v-show="editing" class="btn" name="cross" @click="$emit('delChannel',channel.id)"></van-icon>
           </template>
         </van-grid-item>
       </van-grid>
