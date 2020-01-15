@@ -11,7 +11,7 @@
       <van-grid class="van-hairline--left">
         <van-grid-item v-for="(channel,i) in channels" :key="channel.id">
             <!-- 告诉父组件点击了哪个频道 -->
-          <span class="f12" @click="$emit('selectChannel',channel.id)">{{channel.name}}</span>
+          <span :class="{red:i===activeIndex}" class="f12" @click="$emit('selectChannel',channel.id)">{{channel.name}}</span>
           <!-- 通过编辑状态来控制叉号图标的显示和隐藏 -->
           <!-- v-if的优先级比v-show的高 -->
           <template v-if="i!=0" >
@@ -47,6 +47,9 @@ export default {
       type: Array,
       required: true,
       default: () => []// eslint要求我们必须返回一个函数，用一个函数来声明数组类型，所以用箭头函数
+    },
+    activeIndex: {
+      type: Number// 接收激活频道索引
     }
   },
   computed: {
