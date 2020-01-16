@@ -8,8 +8,8 @@
     <van-search @search="onSearch" v-model.trim="q"  placeholder="请输入搜索关键词" shape="round" />
     <!-- 联想搜索 -->
     <van-cell-group class="suggest-box" v-if="q">
-      <van-cell icon="search">
-        <span>j</span>ava
+      <van-cell @click="toSearchResult(item)" icon="search" v-for="item in suggestList" :key="item">
+        <span>{{item}}</span>
       </van-cell>
     </van-cell-group>
     <!-- 历史记录 -->
@@ -33,13 +33,42 @@
 </template>
 
 <script>
+import { suggestion } from '@/api/article'
 const key = 'hm-91-toutiao-history'
 export default {
   name: 'search',
   data () {
     return {
       q: '',
-      historyList: []// 存放历史记录的数据
+      historyList: [], // 存放历史记录的数据
+      suggestList: []// 存放联想建议的数组
+    }
+  },
+  watch: {
+    // 监听谁就写谁的函数名字
+    q () {
+      // console.log('jianting')
+      // 防抖搜索
+      // clearTimeout(this.timer)
+      // let timer=setTimeout(async ()=>{
+      //   if(!this.q){
+      //     this.suggestionList=[]
+      //   }
+      //   let data = await suggestion({q:this.q})// 搜索联想建议
+      //   data.suggestList = data.options
+      // },500)
+      // 节流搜索
+      if (!this.timer) {
+        this.timer = setTimeout(async () => {
+          this.timer = null
+          if (!this.q) {
+            this.suggestionList = []
+            return false
+          }
+          let data = await suggestion({ q: this.q })// 搜索联想建议
+          this.suggestList = data.options
+        }, 500)
+      }
     }
   },
   created () {
@@ -70,6 +99,13 @@ export default {
       this.historyList = Array.from(obj)// 将set转回数组
       localStorage.setItem(key, JSON.stringify(this.historyList)) // 重新写入缓存
       this.$router.push({ path: '/search/result', query: { q: this.q } })
+    },
+    toSearchResult (text) {
+      let obj = new Set(this.historyList)// 生成一个set变量
+      obj.add(text)
+      this.historyList = Array.from(obj)// 将set转回数组
+      localStorage.setItem(key, JSON.stringify(this.historyList)) // 重新写入缓存
+      this.$router.push({ path: '/search/result', query: { q: text } })
     }
   }
 }
