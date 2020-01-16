@@ -3,25 +3,25 @@
     <!-- 用户个人资料 -->
      <div class="user-profile">
       <div class="info">
-        <van-image round src="https://img.yzcdn.cn/vant/cat.jpeg" />
+        <van-image round :src="userInfo.photo" />
         <!-- 用户名 -->
         <h3 class="name">
-          用户名
+          {{userInfo.name}}
           <br />
           <van-tag size="mini">申请认证</van-tag>
         </h3>
       </div>
       <van-row>
         <van-col span="8">
-          <p>0</p>
+          <p>{{userInfo.art_count}}</p>
           <p>动态</p>
         </van-col>
         <van-col span="8">
-          <p>0</p>
+          <p>{{userInfo.follow_count}}</p>
           <p>关注</p>
         </van-col>
         <van-col span="8">
-          <p>0</p>
+          <p>{{userInfo.fans_count}}</p>
           <p>粉丝</p>
         </van-col>
       </van-row>
@@ -42,14 +42,46 @@
       <van-cell icon="edit" title="编辑资料" to="/user/profile" is-link />
       <van-cell icon="chat-o" title="小智同学" to="/user/chat" is-link />
       <van-cell icon="setting-o" title="系统设置" is-link />
-      <van-cell icon="warning-o" title="退出登录" to="/user/login" is-link />
+      <van-cell icon="warning-o" title="退出登录" @click="lgout" is-link />
     </van-cell-group>
   </div>
 </template>
 
 <script>
+import { mapMutations } from 'vuex'
+import { getUserInfo } from '@/api/user'
 export default {
-  name: 'user'
+  name: 'user',
+  data () {
+    return {
+      userInfo: {}
+
+    }
+  },
+  created () {
+    this.getUserInfo()
+  },
+  methods: {
+    async getUserInfo () {
+      this.userInfo = await getUserInfo()
+    },
+    // 登出方法
+    async lgout () {
+      // 应该先询问一下
+      try {
+        await this.$dialog.confirm({
+          message: '您确定要退出登录吗'
+        })
+        // this.$store.commit('clearUser')
+        this.clearUser()// 清除用户的token
+        // 跳转到登录页面
+        this.$router.push('/login')
+      } catch (error) {
+
+      }
+    },
+    ...mapMutations(['clearUser'])// 映射vuex中的mutations
+  }
 }
 </script>
 
