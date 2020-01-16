@@ -11,6 +11,7 @@
             <van-cell
                 v-for="article in articles"
                 :key="article.art_id.toString()"
+                :to="`/article?articleId=${article.art_id.toString()}`"
             >
                 <div class="article_item">
                     <h3 class="van-ellipsis">{{article.title}}</h3>
@@ -28,7 +29,7 @@
                         <span>{{article.aut_name}}</span>
                         <span>{{article.comm_count}}评论</span>
                         <span>{{article.pubdate | relTime}}</span>
-                        <span class="close" v-if="user.token" @click="$emit('showAction',article.art_id.toString())"><van-icon name="cross"></van-icon></span>
+                        <span class="close" v-if="user.token" @click.stop="$emit('showAction',article.art_id.toString())"><van-icon name="cross"></van-icon></span>
                     </div>
                 </div>
             </van-cell>

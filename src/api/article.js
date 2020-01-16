@@ -42,3 +42,10 @@ export function searchArticle (params) {
     params
   })
 }
+// 获取文章详情
+// 埋点是什么？
+export function getArticleInfo (articleId) {
+  return request({
+    url: `articles/${articleId}`
+  })
+}
