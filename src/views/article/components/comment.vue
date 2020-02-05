@@ -23,7 +23,7 @@
           <p>{{comment.conent}}</p>
           <p>
             <span class="time">{{comment.pubdate | relTime}}</span>&nbsp;
-            <van-tag plain @click="openReply">{{comment.reply_count}} 回复</van-tag>
+            <van-tag plain @click="openReply(comment.com_id)">{{comment.reply_count}} 回复</van-tag>
           </p>
         </div>
       </div>
@@ -37,7 +37,8 @@
     <!-- 回复列表组件 -->
     <van-action-sheet :round="false" v-model="showReply" class="reply_dailog" title="回复评论">
       <!-- 回复列表组件 加载状态 finished finished-text -->
-      <van-list v-model="reply.loading" :finished="reply.finished" finished-text="没有更多了">
+      <!-- immediate-check控制当前van-list组件是否主动检查滚动 -->
+      <van-list :immediate-check="false" v-model="reply.loading" :finished="reply.finished" finished-text="没有更多了">
         <div class="item van-hairline--bottom van-hairline--top" v-for="index in 8" :key="index">
           <van-image round width="1rem" height="1rem" fit="fill" src="https://img.yzcdn.cn/vant/cat.jpeg" />
           <div class="info">
@@ -76,15 +77,29 @@ export default {
         loading: false, // 是回复列表组件的状态
         finished: false, // 是回复列表组件的结束状态
         list: [], // 用于存放当前弹出的关于某个评论的回复列表
-        offset: null// 获取评论的评论的分页依据
+        offset: null, // 获取评论的评论的分页依据
+        commentId: null// 用来存放评论的id
+
       }
 
     }
   },
   methods: {
-    openReply () {
+    openReply (commentId) {
       this.showReply = true// 弹出面板
       // 进行若干操作
+      this.commentId = commentId
+      // 关闭van-list上拉加载
+      this.reply.list = [] // 清空我们原有的数据
+      this.reply.offset = null // 重置回复的偏移量
+      this.reply.finished = false// 设置成原始状态
+      this.reply.loading = true// 打开加载状态，因为这个时候没有了自动检查
+      // 开始加载第一页的数据
+      this.getReply()
+    },
+    getReply (commentId) {
+      // 获取评论的评论就是获取回复的方法
+      // 加载逻辑
     },
     async onLoad () {
       console.log('获取评论列表')
