@@ -49,3 +49,11 @@ export function getArticleInfo (articleId) {
     url: `articles/${articleId}`
   })
 }
+// 封装获取评论或者评论回复
+export function getComments (params) {
+  return request({
+    url: 'comments',
+    // query放到params
+    params
+  })
+}
