@@ -43,7 +43,7 @@ instance.interceptors.response.use(function (response) {
   // 判断
   // error  中的三个参数 config=> 当前请求的配置 request=>请求 response 响应
   if (error.response && error.response.status === 401) {
-    let topath = { path: '/login', query: { redirectUrl: router.currentRoute.path } }
+    let topath = { path: '/login', query: { redirectUrl: router.currentRoute.fullPath } }
     // 表示token 过期
     // 判断是否有refresh_token
     if (store.state.user.refresh_token) {

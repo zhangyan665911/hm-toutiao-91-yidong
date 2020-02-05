@@ -20,7 +20,7 @@
               <span class="count">{{comment.like_count}}</span>
             </span>
           </p>
-          <p>{{comment.conent}}</p>
+          <p>{{comment.content}}</p>
           <p>
             <span class="time">{{comment.pubdate | relTime}}</span>&nbsp;
             <van-tag plain @click="openReply(comment.com_id)">{{comment.reply_count}} 回复</van-tag>
@@ -28,26 +28,37 @@
         </div>
       </div>
     </van-list>
+    <!-- 给v-model一个修饰符.trim去掉前后空格 -->
     <div class="reply-container van-hairline--top">
-      <van-field v-model="value" placeholder="写评论...">
+      <van-field v-model.trim="value" placeholder="写评论...">
         <van-loading v-if="submiting" slot="button" type="spinner" size="16px"></van-loading>
-        <span class="submit" v-else slot="button">提交</span>
+        <span class="submit" @click="submit" v-else slot="button">提交</span>
       </van-field>
     </div>
     <!-- 回复列表组件 -->
-    <van-action-sheet :round="false" v-model="showReply" class="reply_dailog" title="回复评论">
+    <!-- 当退出之后把评论id制成空 -->
+    <van-action-sheet @closed="reply.commentId=null" :round="false" v-model="showReply" class="reply_dailog" title="回复评论">
       <!-- 回复列表组件 加载状态 finished finished-text -->
       <!-- immediate-check控制当前van-list组件是否主动检查滚动 -->
-      <van-list :immediate-check="false" v-model="reply.loading" :finished="reply.finished" finished-text="没有更多了">
-        <div class="item van-hairline--bottom van-hairline--top" v-for="index in 8" :key="index">
-          <van-image round width="1rem" height="1rem" fit="fill" src="https://img.yzcdn.cn/vant/cat.jpeg" />
+      <van-list @load="getReply()" :immediate-check="false" v-model="reply.loading" :finished="reply.finished" finished-text="没有更多了">
+        <div class="item van-hairline--bottom van-hairline--top" v-for="reply in reply.list" :key="reply.com_id.toString()">
+          <!-- 用户头像 -->
+          <van-image round width="1rem" height="1rem" fit="fill" :src="reply.aut_photo" />
           <div class="info">
-            <p><span class="name">一阵清风</span></p>
-            <p>评论的内容，。。。。</p>
-            <p><span class="time">两天内</span></p>
+            <!-- 用户名 -->
+            <p><span class="name">{{reply.aut_name}}</span></p>
+            <!-- 评论内容 -->
+            <p>{{reply.content}}</p>
+            <p><span class="time">{{reply.pubdate|relTime}}</span></p>
           </div>
         </div>
       </van-list>
+      <div class="reply-container van-hairline--top">
+      <van-field v-model="value" placeholder="写评论...">
+        <van-loading v-if="submiting" slot="button" type="spinner" size="16px"></van-loading>
+        <span @click="submit" class="submit" v-else slot="button">提交</span>
+      </van-field>
+    </div>
     </van-action-sheet>
   </div>
 
@@ -55,7 +66,7 @@
 </template>
 
 <script>
-import { getComments } from '@/api/article'
+import { getComments, commentOrReply } from '@/api/article'
 export default {
   data () {
     return {
@@ -85,10 +96,53 @@ export default {
     }
   },
   methods: {
+    async submit () {
+      // 提交评论的方法
+      if (!this.value) {
+        // 如果他为空
+        return false
+        // 如果当前评论内容为空就会立刻返回
+      }
+      this.submiting = true// 控制提交状态，控制用户单位时间内评论的数据次数
+      await this.$sleep()// 强制等待500ms
+      try {
+        // this.$sleep()
+      // 评论有两种场景
+      // 一种是对文章进行评论，一种是对评论进行评论
+
+        // 如果不为空
+        // 怎么区分是对文章评论还是对评论进行评论
+        console.log('评论了')
+        const data = await commentOrReply({
+          content: this.value,
+          target: this.reply.commentId ? this.reply.commentId.toString() : this.$route.query.articleId, // 要么是文章id要么是评论id
+          art_id: this.reply.commentId ? this.$route.query.articleId : null// 如果是对文章进行评论就不需要传参数
+        })
+        // 将评论数据呈现在视图上
+        if (this.reply.commentId) {
+          // 对评论进行评论
+          this.reply.list.unshift(data.new_obj)
+          // 如果对评论的评论后应该找到该评论评对评论的回复次数+1
+          // find
+          const comment = this.comments.find(item => item.com_id.toString() === this.reply.commentId.toString())
+          comment && comment.reply_count++
+        } else {
+          // 对文章进行评论
+          this.comments.unshift(data.new_obj)
+        }
+      } catch (error) {
+        this.$znotify({
+          type: 'danger',
+          message: '评论失败'
+        })
+      }
+      this.submiting = false
+      this.value = ''// 清空输入框
+    },
     openReply (commentId) {
       this.showReply = true// 弹出面板
       // 进行若干操作
-      this.commentId = commentId
+      this.reply.commentId = commentId
       // 关闭van-list上拉加载
       this.reply.list = [] // 清空我们原有的数据
       this.reply.offset = null // 重置回复的偏移量
@@ -97,9 +151,23 @@ export default {
       // 开始加载第一页的数据
       this.getReply()
     },
-    getReply (commentId) {
+    async getReply () {
       // 获取评论的评论就是获取回复的方法
       // 加载逻辑
+      let data = await getComments({
+        type: 'c', // 获取评论的评论
+        offset: this.reply.offset, // 获取评论的评论的偏移量
+        source: this.reply.commentId.toString()
+      })
+      // console.log(data)
+      this.reply.list.push(...data.results)// 将评论的评论加到数据尾部
+      this.reply.loading = false// 评论的评加载状态关闭
+      this.reply.finished = data.end_id === data.last_id// 表示没有数据可以加载了
+      if (!this.reply.finished) {
+        // 表示还有数据没有加载完
+        this.reply.offset = data.last_id
+        // 把当前页的最后一个id给偏移量作为请求下一页的参数依据
+      }
     },
     async onLoad () {
       console.log('获取评论列表')
